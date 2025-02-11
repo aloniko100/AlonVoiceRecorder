@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>המקליט של אלון</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap">
+    <style>
+        body {
+            background-color: white;
+            font-family: 'Heebo', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        h1 {
+            color: orange;
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+        }
+        h2 {
+            color: black;
+            font-size: 1em;
+            margin-top: 0;
+        }
+        .recorder {
+            background-color: #87CEEB;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            font-size: 1em;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        a {
+            display: block;
+            margin-top: 10px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>המקליט של אלון</h1>
+    <h2>לחץ על כפתור "התחל הקלטה" כדי להקליט ולחץ על כפתור "הורד הקלטה" כדי להוריד את קובץ ההקלטה למחשב</h2>
+    <div class="recorder">
+        <button id="recordButton">התחל הקלטה</button>
+        <button id="stopButton" disabled>עצור הקלטה</button>
+        <a id="downloadLink" style="display: none;">הורד הקלטה</a>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const downloadLink = document.getElementById('downloadLink');
+
+        recordButton.addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                downloadLink.href = url;
+                downloadLink.download = 'recording.wav';
+                downloadLink.style.display = 'block';
+                recordedChunks = [];
+            };
+            mediaRecorder.start();
+            recordButton.disabled = true;
+            stopButton.disabled = false;
+        });
+
+        stopButton.addEventListener('click', () => {
+            mediaRecorder.stop();
+            recordButton.disabled = false;
+            stopButton.disabled = true;
+        });
+    </script>
+</body>
+</html>
